@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KingNet – Universo di Stephen King</title>
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #mynetwork {
+      width: 100%;
+      height: 700px;
+      border: 1px solid lightgray;
+    }
+    #info {
+      margin-top: 1rem;
+    }
+    #filters {
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>KingNet – Mappa Interattiva dei Personaggi</h2>
+  <p>Visualizzazione dell'universo narrativo di Stephen King con filtri e ricerca.</p>
+
+  <div id="filters">
+    <label for="universeFilter">Filtra per universo narrativo:</label>
+    <select id="universeFilter">
+      <option value="tutti">Tutti</option>
+    </select>
+    &nbsp;&nbsp;
+    <label for="searchInput">Cerca personaggio:</label>
+    <input type="text" id="searchInput" placeholder="Es. Pennywise">
+    <button onclick="filterSearch()">Cerca</button>
+  </div>
+
+  <div id="mynetwork"></div>
+  <div id="info">Clicca su un nodo per vedere i dettagli</div>
+
+  <script>
+    const data = {"personaggi": [{"id": "randall_flagg", "nome": "Randall Flagg", "alias": ["Walter o'Dim"], "opere": ["L'ombra dello scorpione", "La Torre Nera", "Gli occhi del drago"]}, {"id": "roland_deschain", "nome": "Roland Deschain", "alias": [], "opere": ["La Torre Nera"]}, {"id": "jake_chambers", "nome": "Jake Chambers", "alias": [], "opere": ["La Torre Nera"]}, {"id": "eddie_dean", "nome": "Eddie Dean", "alias": [], "opere": ["La Torre Nera"]}, {"id": "susannah_dean", "nome": "Susannah Dean", "alias": ["Odetta Holmes", "Detta Walker"], "opere": ["La Torre Nera"]}, {"id": "pennywise", "nome": "Pennywise", "alias": ["It", "Bob Gray"], "opere": ["It", "La Torre Nera"]}, {"id": "mike_hanlon", "nome": "Mike Hanlon", "alias": [], "opere": ["It"]}, {"id": "bill_denbrough", "nome": "Bill Denbrough", "alias": ["Big Bill"], "opere": ["It"]}, {"id": "beverly_marsh", "nome": "Beverly Marsh", "alias": [], "opere": ["It"]}, {"id": "richie_tozier", "nome": "Richie Tozier", "alias": ["Trashmouth"], "opere": ["It"]}, {"id": "ben_hanscom", "nome": "Ben Hanscom", "alias": [], "opere": ["It"]}, {"id": "stan_uris", "nome": "Stan Uris", "alias": [], "opere": ["It"]}, {"id": "danny_torrance", "nome": "Danny Torrance", "alias": ["Doc"], "opere": ["Shining", "Doctor Sleep"]}, {"id": "jack_torrance", "nome": "Jack Torrance", "alias": [], "opere": ["Shining"]}, {"id": "abra_stone", "nome": "Abra Stone", "alias": [], "opere": ["Doctor Sleep"]}, {"id": "john_coffee", "nome": "John Coffey", "alias": [], "opere": ["Il miglio verde"]}, {"id": "ralph_roberts", "nome": "Ralph Roberts", "alias": [], "opere": ["Insomnia"]}, {"id": "johnny_smith", "nome": "Johnny Smith", "alias": [], "opere": ["La zona morta"]}, {"id": "louis_creed", "nome": "Louis Creed", "alias": [], "opere": ["Pet Sematary"]}, {"id": "gauge_creed", "nome": "Gage Creed", "alias": [], "opere": ["Pet Sematary"]}, {"id": "cujo", "nome": "Cujo", "alias": [], "opere": ["Cujo"]}, {"id": "leland_gaunt", "nome": "Leland Gaunt", "alias": [], "opere": ["Cose preziose"]}, {"id": "alan_pangborn", "nome": "Alan Pangborn", "alias": [], "opere": ["La metà oscura", "Cose preziose"]}, {"id": "thad_beaumont", "nome": "Thad Beaumont", "alias": ["George Stark"], "opere": ["La metà oscura"]}, {"id": "annie_wilkes", "nome": "Annie Wilkes", "alias": [], "opere": ["Misery"]}, {"id": "dolores_claiborne", "nome": "Dolores Claiborne", "alias": [], "opere": ["Dolores Claiborne"]}, {"id": "jake_eyman", "nome": "Jake Epping", "alias": [], "opere": ["22/11/63"]}, {"id": "dandelo", "nome": "Dandelo", "alias": [], "opere": ["La Torre Nera"]}, {"id": "patrick_danville", "nome": "Patrick Danville", "alias": [], "opere": ["La Torre Nera", "Insomnia"]}, {"id": "bryon_hadley", "nome": "Byron Hadley", "alias": [], "opere": ["Le ali della libertà"]}, {"id": "andy_dufresne", "nome": "Andy Dufresne", "alias": [], "opere": ["Le ali della libertà"]}, {"id": "ace_merrill", "nome": "Ace Merrill", "alias": [], "opere": ["Il corpo", "Cose preziose"]}, {"id": "gordon_lachance", "nome": "Gordon Lachance", "alias": ["Gordie"], "opere": ["Il corpo"]}, {"id": "ted_brautigan", "nome": "Ted Brautigan", "alias": [], "opere": ["Cuori in Atlantide", "La Torre Nera"]}, {"id": "bobby_garfield", "nome": "Bobby Garfield", "alias": [], "opere": ["Cuori in Atlantide"]}, {"id": "henry_bowers", "nome": "Henry Bowers", "alias": [], "opere": ["It"]}, {"id": "bev_marsh", "nome": "Bev Marsh", "alias": [], "opere": ["It"]}, {"id": "audra_phillips", "nome": "Audra Phillips", "alias": [], "opere": ["It"]}, {"id": "billy_nolan", "nome": "Billy Nolan", "alias": [], "opere": ["Carrie"]}, {"id": "margaret_white", "nome": "Margaret White", "alias": [], "opere": ["Carrie"]}, {"id": "carrie_white", "nome": "Carrie White", "alias": [], "opere": ["Carrie"]}, {"id": "king", "nome": "Stephen King (personaggio)", "alias": [], "opere": ["La Torre Nera"]}, {"id": "blaine", "nome": "Blaine il Mono", "alias": [], "opere": ["La Torre Nera"]}, {"id": "oy", "nome": "Oy", "alias": [], "opere": ["La Torre Nera"]}, {"id": "father_callahan", "nome": "Padre Callahan", "alias": [], "opere": ["Le notti di Salem", "La Torre Nera"]}, {"id": "ben_mears", "nome": "Ben Mears", "alias": [], "opere": ["Le notti di Salem"]}, {"id": "donald_callahan", "nome": "Donald Callahan", "alias": ["Padre Callahan"], "opere": ["Le notti di Salem", "La Torre Nera"]}, {"id": "marten_broadcloak", "nome": "Marten Broadcloak", "alias": ["Randall Flagg"], "opere": ["La Torre Nera"]}, {"id": "georgie_denbrough", "nome": "Georgie Denbrough", "alias": [], "opere": ["It"]}, {"id": "bev_keene", "nome": "Bev Keene", "alias": [], "opere": ["The Mist", "Castle Rock"]}, {"id": "andy_mcghee", "nome": "Andy McGee", "alias": [], "opere": ["L'incendiaria"]}, {"id": "charlie_mcghee", "nome": "Charlie McGee", "alias": [], "opere": ["L'incendiaria"]}, {"id": "arnie_cunningham", "nome": "Arnie Cunningham", "alias": [], "opere": ["Christine"]}, {"id": "christine", "nome": "Christine", "alias": [], "opere": ["Christine"]}, {"id": "john_rainbird", "nome": "John Rainbird", "alias": [], "opere": ["L'incendiaria"]}, {"id": "sandra_stansfield", "nome": "Sandra Stansfield", "alias": ["Sandy"], "opere": ["Il gioco di Gerald"]}, {"id": "gerald_burlingame", "nome": "Gerald Burlingame", "alias": [], "opere": ["Il gioco di Gerald"]}, {"id": "dolores_claiborne2", "nome": "Vera Donovan", "alias": [], "opere": ["Dolores Claiborne"]}, {"id": "lee_harvey_oswald", "nome": "Lee Harvey Oswald", "alias": [], "opere": ["22/11/63"]}, {"id": "al_templeton", "nome": "Al Templeton", "alias": [], "opere": ["22/11/63"]}, {"id": "richard_dees", "nome": "Richard Dees", "alias": [], "opere": ["The Night Flier"]}, {"id": "vampiro_dello_scalo", "nome": "Vampiro dello scalo", "alias": [], "opere": ["The Night Flier"]}, {"id": "scott_landdon", "nome": "Scott Landon", "alias": [], "opere": ["La storia di Lisey"]}, {"id": "lisey_landdon", "nome": "Lisey Landon", "alias": [], "opere": ["La storia di Lisey"]}, {"id": "charles_jacobs", "nome": "Charles Jacobs", "alias": [], "opere": ["Revival"]}, {"id": "jamie_morton", "nome": "Jamie Morton", "alias": [], "opere": ["Revival"]}, {"id": "antagonista_the_outsider", "nome": "El Cuco", "alias": [], "opere": ["The Outsider"]}, {"id": "ralph_anderson", "nome": "Ralph Anderson", "alias": [], "opere": ["The Outsider", "If It Bleeds"]}, {"id": "rose_daniels", "nome": "Rose Daniels", "alias": [], "opere": ["Rose Madder"]}, {"id": "norman_daniels", "nome": "Norman Daniels", "alias": [], "opere": ["Rose Madder"]}, {"id": "clay_riddell", "nome": "Clay Riddell", "alias": [], "opere": ["Cell"]}, {"id": "john_edgar_freeman", "nome": "John Edgar Freeman", "alias": ["Johnny Marinville"], "opere": ["Desperation", "The Regulators"]}, {"id": "ralph_carver", "nome": "Ralph Carver", "alias": [], "opere": ["Desperation"]}, {"id": "tak", "nome": "Tak", "alias": [], "opere": ["Desperation", "The Regulators"]}, {"id": "blaze", "nome": "Clay Blaisdell", "alias": ["Blaze"], "opere": ["Blaze"]}, {"id": "charlie_reade", "nome": "Charlie Reade", "alias": [], "opere": ["Fairy Tale"]}, {"id": "maerlyn", "nome": "Maerlyn", "alias": [], "opere": ["La Torre Nera", "Gli occhi del drago"]}]};
+    const universi = {"Derry": ["It", "Insomnia", "22/11/63", "Dreamcatcher"], "Castle Rock": ["Cujo", "La metà oscura", "Cose preziose", "Il corpo", "The Dead Zone"], "Torre Nera": ["La Torre Nera", "Insomnia", "Cuori in Atlantide", "Gli occhi del drago", "It", "The Stand", "Le notti di Salem"], "Universo di Gilead": ["La Torre Nera"], "Altro": ["Fairy Tale", "Blaze", "Rose Madder", "Cell", "Revival", "The Outsider", "The Mist"]};
+
+    let network;
+    const universeFilter = document.getElementById("universeFilter");
+    const searchInput = document.getElementById("searchInput");
+
+    // Popola il filtro universi
+    Object.keys(universi).forEach(key => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = key;
+      universeFilter.appendChild(option);
+    });
+
+    universeFilter.addEventListener("change", () => {
+      renderGraph(universeFilter.value);
+    });
+
+    function renderGraph(filtro) {
+      const nodes = [];
+      const edges = [];
+      const addedBooks = new Set();
+      const addedAliases = new Set();
+
+      data.personaggi.forEach(p => {
+        if (filtro !== "tutti" && !p.opere.some(o => universi[filtro]?.includes(o))) return;
+
+        nodes.push({ id: p.id, label: p.nome, group: "personaggio", title: p.nome });
+
+        p.opere.forEach(opera => {
+          const operaId = opera.toLowerCase().replace(/[^a-z0-9]/gi, "_");
+          if (!addedBooks.has(operaId)) {
+            nodes.push({ id: operaId, label: opera, group: "opera" });
+            addedBooks.add(operaId);
+          }
+          edges.push({ from: p.id, to: operaId, label: "appare in" });
+        });
+
+        p.alias.forEach(alias => {
+          const aliasId = alias.toLowerCase().replace(/[^a-z0-9]/gi, "_");
+          if (!addedAliases.has(aliasId)) {
+            nodes.push({ id: aliasId, label: alias, group: "alias" });
+            addedAliases.add(aliasId);
+          }
+          edges.push({ from: p.id, to: aliasId, label: "alias" });
+        });
+      });
+
+      const container = document.getElementById("mynetwork");
+      const dataSet = {
+        nodes: new vis.DataSet(nodes),
+        edges: new vis.DataSet(edges)
+      };
+      const options = {
+        nodes: {
+          shape: "dot",
+          size: 14,
+          font: { size: 14 }
+        },
+        edges: {
+          arrows: "to",
+          font: { align: "middle", size: 12 }
+        },
+        groups: {
+          personaggio: { color: { background: "#FF6B6B" } },
+          opera: { color: { background: "#4D96FF" } },
+          alias: { color: { background: "#FFD93D" } }
+        },
+        interaction: { hover: true },
+        physics: { stabilization: true }
+      };
+
+      network = new vis.Network(container, dataSet, options);
+
+      network.on("click", function (params) {
+        if (params.nodes.length > 0) {
+          const nodeId = params.nodes[0];
+          const node = dataSet.nodes.get(nodeId);
+          document.getElementById("info").innerText =
+            `Hai selezionato: ${node.label} (Tipo: ${node.group})`;
+        }
+      });
+    }
+
+    function filterSearch() {
+      const searchValue = searchInput.value.trim().toLowerCase();
+      if (!searchValue) return;
+
+      const allNodes = network.body.data.nodes.get();
+      const found = allNodes.find(n => n.label.toLowerCase().includes(searchValue));
+
+      if (found) {
+        network.selectNodes([found.id]);
+        network.focus(found.id, {
+          scale: 1.5,
+          animation: true
+        });
+        document.getElementById("info").innerText = `Hai cercato: ${found.label} (Tipo: ${found.group})`;
+      } else {
+        document.getElementById("info").innerText = "Nessun risultato trovato.";
+      }
+    }
+
+    // Prima visualizzazione
+    renderGraph("tutti");
+  </script>
+</body>
+</html>
